@@ -1,3 +1,6 @@
+import math
+import moduleNumpy as np
+
 class student:
     def __init__(self, student_id, name, dob):
         self.student_id = student_id
@@ -11,9 +14,9 @@ class course:
 
 class student_mark_management:
     def __init__(self):
-        self.students = {} # dict
-        self.courses = {} # dict
-        self.marks = {} # dict
+        self.students = {}
+        self.courses = {}
+        self.marks = {}
 
     def add_student(self):
         student_id = input("Student ID: ")
@@ -27,19 +30,13 @@ class student_mark_management:
         self.courses[course_id] = course(course_id, course_name)
 
     def enter_mark(self):
-        for course_id, course in self.courses.items(): 
-            # dict: courses, course_id = key, 'course' = course 
-            # loop: iterate each course in 'courses' dict
-            # retrieve both 'course_id' , 'course' object
+        for course_id, course in self.courses.items():
             print(f"\nEntering marks for {course.course_name}")
-            self.marks[course_id] = {} # empty dictionary specifically for marks related to a particular course
-            # It ensures that when marks are entered for a new course,
-            # a separate dictionary is available to store those marks, distinct from marks for other courses
-            # 'self.marks' in '__init__' for storing all marks
-            # 'self.marks[student_id]' for marks of each course
+            self.marks[course_id] = {}
             for student_id, student in self.students.items():
-                mark = float(input(f"Enter mark for {student.name} (ID: {student_id}): "))
+                mark = float(input(f"Enter mark for {student.name} (ID: {student_id}) (Decimal number please, example: 19.00): "))
                 self.marks[course_id][student_id] = mark
+
 
     def summary_table(self):
         header_line = "ID         Name                Date of Birth   " + "".join([f"{course.course_name[:10]:<12}" for course in self.courses.values()])
@@ -49,7 +46,7 @@ class student_mark_management:
         for student_id, student in self.students.items():
             student_row = f"{student.student_id:<10}{student.name:<20}{student.dob:<18}"
             for course_id in self.courses:
-                mark = self.marks.get(course_id, {}).get(student_id, 'N/A')
+                mark = math.floor((self.marks.get(course_id, {}).get(student_id, 'N/A')) *10) / 10
                 student_row += f"{mark:<12}"
             print(student_row)
         
