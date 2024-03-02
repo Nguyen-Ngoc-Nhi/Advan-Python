@@ -52,6 +52,21 @@ print(arr4x4)
 print('----------------------------------------------')
 print(arr_random_2x3)
 
+print('\n----------------------------------------------')
+
+print('\nEdit ARRAY')
+print("Kiểu dữ liệu của phần tử trong mảng:", arr3.dtype)
+print("Kích thước của mảng:", arr3.shape)
+print("Số phần tử trong mảng:", arr3.size)
+print("Số chiều của mảng:", arr3.ndim)
+
+print("arr[2]=", arr[2])
+print("arr2[1:2]=", arr1[1,2])
+print("arr3[1,2,3]=", arr2[1,1,3])
+print("arr[0:3]=", arr[0:3])
+print("arr2[:,:1]=", arr1[:,:2])
+
+
 
 
 
