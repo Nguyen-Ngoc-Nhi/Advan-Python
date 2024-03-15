@@ -1,3 +1,6 @@
+import os
+import zlib  # Import zlib for compression
+
 from input import *
 from output import *
 from domains.student import Student
@@ -70,26 +73,57 @@ class StudentMarkManagement:
             print(student_row)
         
         print('-' * len(header_line))
+        
+    def write_to_file(self, file_name, data):
+        current_directory = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_directory, file_name)
+        with open(file_name, 'w') as file:
+            for item in data:
+                file.write(f"{item}\n")
+
+    def compress_data(self, file_name, data):
+        compressed_data = zlib.compress("\n".join(data).encode())
+        with open(file_name, 'wb') as file:
+            file.write(compressed_data)
+
+    def decompress_data(self, file_name):
+        with open(file_name, 'rb') as file:
+            decompressed_data = zlib.decompress(file.read()).decode().split("\n")
+        return decompressed_data
 
 def main():
     system = StudentMarkManagement()
 
-    num_students = int(get_input("Enter the number of students: "))
-    for _ in range(num_students):
-        system.add_student()
+    # Check if students.dat exists, if yes, decompress and load data
+    if os.path.exists("students.dat"):
+        decompressed_data = system.decompress_data("students.dat")
+        # Load data from decompressed file
+        # Implement logic to load data into system.students, system.courses, etc.
+    else:
+        num_students = int(get_input("Enter the number of students: "))
+        for _ in range(num_students):
+            system.add_student()
 
-    num_courses = int(get_input("Enter the number of courses: "))
-    for _ in range(num_courses):
-        system.add_course()
+        num_courses = int(get_input("Enter the number of courses: "))
+        for _ in range(num_courses):
+            system.add_course()
 
-    system.enter_mark()
-    system.enter_ect()
-    system.summary_table()
+        system.enter_mark()
+        system.enter_ect()
+        system.summary_table()
     
-    sorted_students = system.sort_students_by_gpa()
-    display_message("\nSorted Students by GPA:")
-    for student in sorted_students:
-        display_message(f"ID: {student.student_id}, Name: {student.name}, GPA: {system.calculate_gpa(student.student_id)}")
+        sorted_students = system.sort_students_by_gpa()
+        display_message("\nSorted Students by GPA:")
+        for student in sorted_students:
+            display_message(f"ID: {student.student_id}, Name: {student.name}, GPA: {system.calculate_gpa(student.student_id)}")
+
+        # Writing data to files
+        system.write_to_file("students.txt", [str(student) for student in system.students.values()])
+        system.write_to_file("courses.txt", [str(course) for course in system.courses.values()])
+        system.write_to_file("marks.txt", [str(mark) for mark in system.marks.items()])
+
+        # Compress data before closing the program
+        system.compress_data("students.dat", [str(student) for student in system.students.values()])
 
 if __name__ == "__main__":
     main()

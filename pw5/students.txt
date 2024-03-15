@@ -1,0 +1,2 @@
+Student ID: 22bi, Name: nhy, Date of birth: 10/09/2004
+Student ID: 23bi, Name: nhi, Date of birth: 17/07/2004
