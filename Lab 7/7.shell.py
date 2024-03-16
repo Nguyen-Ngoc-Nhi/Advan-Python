@@ -1,68 +1,39 @@
+import os
 import subprocess
-import shlex
 
 def execute_command(command):
     try:
-        # Splitting the command into a list of arguments
-        args = shlex.split(command)
-        
-        # Execute the command
-        result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
-        # Returning the result
-        return result.stdout.decode(), result.stderr.decode()
+        # Check for IO redirection
+        if '|' in command:
+            parts = command.split('|')
+            process1 = subprocess.Popen(parts[0].strip().split(), stdout=subprocess.PIPE)
+            process2 = subprocess.Popen(parts[1].strip().split(), stdin=process1.stdout, stdout=subprocess.PIPE)
+            process1.stdout.close()  # Allow process1 to receive a SIGPIPE if process2 exits.
+            output = process2.communicate()[0]
+        elif '<' in command:
+            parts = command.split('<')
+            with open(parts[1].strip(), 'r') as f:
+                output = subprocess.check_output(parts[0].strip().split(), stdin=f)
+        elif '>' in command:
+            parts = command.split('>')
+            with open(parts[1].strip(), 'w') as f:
+                output = subprocess.check_output(parts[0].strip().split(), stderr=subprocess.STDOUT)
+                f.write(output.decode())
+        else:
+            output = subprocess.check_output(command, shell=True)
+        return output.decode()
+    except subprocess.CalledProcessError as e:
+        return e.output.decode()
     except Exception as e:
-        return str(e), ""
+        return str(e)
 
 def main():
     while True:
-        # User input
-        user_input = input("Shell> ")
-
-        # Checking for input/output redirection
-        if '>' in user_input:
-            command, output_file = user_input.split('>', 1)
-            command = command.strip()
-            output_file = output_file.strip()
-            result, error = execute_command(command)
-            if error:
-                print(error)
-            else:
-                with open(output_file, 'w') as file:
-                    file.write(result)
-        elif '<' in user_input:
-            command, input_file = user_input.split('<', 1)
-            command = command.strip()
-            input_file = input_file.strip()
-            with open(input_file, 'r') as file:
-                result, error = execute_command(command)
-                if error:
-                    print(error)
-                else:
-                    print(result)
-        elif '|' in user_input:
-            commands = user_input.split('|')
-            prev_output = None
-            for cmd in commands:
-                cmd = cmd.strip()
-                result, error = execute_command(cmd)
-                if error:
-                    print(error)
-                    break
-                elif prev_output:
-                    prev_output = subprocess.Popen(shlex.split(cmd), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    prev_output.stdin.write(prev_output.stdout.read())
-                    prev_output.stdin.close()
-                else:
-                    prev_output = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if prev_output:
-                print(prev_output.stdout.read().decode())
-        else:
-            result, error = execute_command(user_input)
-            if error:
-                print(error)
-            else:
-                print(result)
+        command = input("\n$ ")
+        if command.lower() == 'exit':
+            break
+        output = execute_command(command)
+        print(output, end='')
 
 if __name__ == "__main__":
     main()
